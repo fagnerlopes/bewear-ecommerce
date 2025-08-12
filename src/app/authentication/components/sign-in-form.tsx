@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.email("E-mail inválido!"),
@@ -34,6 +35,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const SignInForm = () => {
+  const router = useRouter();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,10 +51,25 @@ const SignInForm = () => {
       rememberMe: true,
       fetchOptions: {
         onSuccess: () => {
-          toast.success("Login realizado com sucesso!");
+          router.push("/");
         },
-        onError: (error) => {
-          toast.error("Erro ao fazer login");
+        onError: (context) => {
+          if (context.error.code === "USER_NOT_FOUND") {
+            toast.error("E-mail não encontrado");
+            return form.setError("email", {
+              message: "E-mail não encontrado",
+            });
+          } else if (context.error.code === "INVALID_EMAIL_OR_PASSWORD") {
+            toast.error("E-mail ou senha inválidos");
+            form.setError("email", {
+              message: "E-mail ou senha inválidos",
+            });
+            return form.setError("password", {
+              message: "E-mail ou senha inválidos",
+            });
+          } else {
+            toast.error("Erro ao fazer login");
+          }
         },
       },
     });

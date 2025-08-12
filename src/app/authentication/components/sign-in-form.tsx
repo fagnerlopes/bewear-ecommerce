@@ -23,6 +23,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   email: z.email("E-mail inválido!"),
@@ -40,8 +42,20 @@ const SignInForm = () => {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log(data);
+  const onSubmit = async (values: FormValues) => {
+    const { error } = await authClient.signIn.email({
+      email: values.email,
+      password: values.password,
+      rememberMe: true,
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("Login realizado com sucesso!");
+        },
+        onError: (error) => {
+          toast.error("Erro ao fazer login");
+        },
+      },
+    });
   };
 
   return (
